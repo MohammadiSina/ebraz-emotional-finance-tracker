@@ -1,4 +1,4 @@
-# Ebraz Emotional Finnace Tracker
+# Ebraz Emotional Finance Tracker
 
 **Ebraz** is a mindful personal finance tool that helps with tracking how users feel about their spendings.
 
