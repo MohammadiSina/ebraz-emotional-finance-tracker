@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique @db.VarChar(150)
+  password String @db.VarChar(255)
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId String
+
+  amount     Float
+  currency   String   @default("IRR") @db.Char(4)
+  category   Category @default(OTHER)
+  intent     Intent // Enum: Planned, Impulse, Obligation
+  emotion    Emotion // Enum: Regret, Satisfaction, etc.
+  note       String?  @db.VarChar(500) // Reflection or short explanation
+  occurredAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, occurredAt])
+}
+
+enum Category {
+  DAILY_PURCHASES
+  MONEY_TRANSFER
+  FOOD
+  CASH_WITHDRAWAL
+  HEALTH_BEAUTY
+  BILLS
+  FASHION
+  TRANSPORT
+  HOUSING
+  ENTERTAINMENT
+  CULTURE_ART
+  SAVINGS_INVESTMENT
+  SPORT
+  GIFT
+  LOAN_INSTALLMENT
+  OTHER
+}
+
+enum Emotion {
+  REGRET
+  SATISFACTION
+  STRESS
+  NEUTRAL
+  GUILT
+  RELIEF
+}
+
+enum Intent {
+  PLANNED
+  IMPULSE
+  OBLIGATION
+}
