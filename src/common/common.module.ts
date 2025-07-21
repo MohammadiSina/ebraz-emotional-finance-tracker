@@ -1,6 +1,18 @@
 import { Global, Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { PrismaExceptionFilter } from './filters/prisma-exceptions.filter';
 import { PrismaService } from './services/prisma.service';
 
 @Global()
-@Module({ providers: [PrismaService], exports: [PrismaService] })
+@Module({
+  providers: [
+    PrismaService,
+    PrismaExceptionFilter,
+    {
+      provide: APP_FILTER,
+      useClass: PrismaExceptionFilter,
+    },
+  ],
+  exports: [PrismaService, PrismaExceptionFilter],
+})
 export class CommonModule {}
