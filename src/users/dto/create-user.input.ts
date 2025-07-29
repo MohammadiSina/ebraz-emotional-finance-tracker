@@ -1,6 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsEmail, IsStrongPassword, Length } from 'class-validator';
-import { USER_CONSTANT } from '../constants/users.constant';
+import { IsEmail, IsEnum, IsStrongPassword, Length } from 'class-validator';
+import { UserRole as Role } from 'generated/prisma';
+import { USER_CONSTANT, UserRole } from '../constants/users.constant';
 
 @InputType()
 export class CreateUserInput {
@@ -8,6 +9,10 @@ export class CreateUserInput {
   @Length(USER_CONSTANT.LENGTH.EMAIL.MIN, USER_CONSTANT.LENGTH.EMAIL.MAX)
   @Field({ description: USER_CONSTANT.FIELD_DESCRIPTION.EMAIL })
   email: string;
+
+  @IsEnum(UserRole)
+  @Field({ description: USER_CONSTANT.FIELD_DESCRIPTION.ROLE, defaultValue: UserRole.USER })
+  role: Role;
 
   @IsStrongPassword({ minLength: USER_CONSTANT.LENGTH.PASSWORD.MIN }, { message: USER_CONSTANT.ERROR.INVALID_PASSWORD })
   @Field({ description: USER_CONSTANT.FIELD_DESCRIPTION.PASSWORD })

@@ -1,17 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { HashService } from '../../auth/services/hash.service';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { PrismaService } from '../../common/services/prisma.service';
+import { USER_CONSTANT, UserRole } from '../constants/users.constant';
 import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserCredentialInput } from '../dto/update-user-credential.input';
 import { UpdateUserInput } from '../dto/update-user.input';
-import { USER_CONSTANT } from '../constants/users.constant';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hashService: HashService,
+  ) {}
 
   async create(createUserInput: CreateUserInput) {
-    const hashedPassword = await bcrypt.hash(createUserInput.password, 12);
+    const hashedPassword = await this.hashService.hashPassword(createUserInput.password);
 
     return this.prisma.user.create({
       data: { ...createUserInput, password: hashedPassword },
@@ -34,19 +39,30 @@ export class UsersService {
     return user;
   }
 
+  // Internal Usage Only
   async findByEmail(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email }, omit: { password: true } });
-    if (!user) throw new NotFoundException(USER_CONSTANT.ERROR.USER_NOT_FOUND());
-
-    return user;
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, password: true, createdAt: true, role: true },
+    });
   }
 
+  // Internal Usage Only
   async userExists(email: string): Promise<boolean> {
     return !!(await this.prisma.user.findUnique({ where: { email }, select: { id: true } }));
   }
 
-  // TODO: I guess I should use the updateOrThrow method instead, and use customized error handler for prisma
-  async update(id: string, updateUserInput: UpdateUserInput) {
+  async update(id: string, updateUserInput: UpdateUserInput, user: User) {
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = user.id === id;
+
+    // Authorization checks
+    if (!isAdmin && !isOwner) throw new ForbiddenException(USER_CONSTANT.ERROR.UPDATE_DENIED);
+    if (!isAdmin && updateUserInput.role) throw new ForbiddenException(USER_CONSTANT.ERROR.UPDATE_ROLE_DENIED);
+
+    // Verify user exists, if admins are the commanders
+    if (isAdmin) await this.findOne(id);
+
     return this.prisma.user.update({
       where: { id },
       data: updateUserInput,
@@ -54,7 +70,36 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
+  async updateCredential(id: string, updateUserCredentialInput: UpdateUserCredentialInput, user: User) {
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = user.id === id;
+
+    // Authorization checks
+    if (!isAdmin && !isOwner) throw new ForbiddenException(USER_CONSTANT.ERROR.UPDATE_DENIED);
+
+    // Verify user exists, if admins are the commanders
+    if (isAdmin) await this.findOne(id);
+
+    // Hash the password
+    const hashedPassword = await this.hashService.hashPassword(updateUserCredentialInput.password);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { ...updateUserCredentialInput, password: hashedPassword },
+      omit: { password: true },
+    });
+  }
+
+  async remove(id: string, user: User) {
+    const isAdmin = user.role === UserRole.ADMIN;
+    const isOwner = user.id === id;
+
+    // Authorization checks
+    if (!isAdmin && !isOwner) throw new ForbiddenException(USER_CONSTANT.ERROR.REMOVE_DENIED);
+
+    // Verify user exists, if admins are the commanders
+    if (isAdmin) await this.findOne(id);
+
     return this.prisma.user.delete({
       where: { id },
       omit: { password: true },
