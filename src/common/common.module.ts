@@ -13,6 +13,6 @@ import { PrismaService } from './services/prisma.service';
       useClass: PrismaExceptionFilter,
     },
   ],
-  exports: [PrismaService, PrismaExceptionFilter],
+  exports: [PrismaService],
 })
 export class CommonModule {}
