@@ -1,8 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { UserRole } from 'generated/prisma';
 import { HashService } from '../../auth/services/hash.service';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { PrismaService } from '../../common/services/prisma.service';
-import { USER_CONSTANT, UserRole } from '../constants/users.constant';
+import { USER_CONSTANT } from '../constants/users.constant';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserCredentialInput } from '../dto/update-user-credential.input';
 import { UpdateUserInput } from '../dto/update-user.input';

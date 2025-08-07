@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { USER_CONSTANT, UserRole } from '../../users/constants/users.constant';
+import { UserRole } from 'generated/prisma';
+import { USER_CONSTANT } from '../../users/constants/users.constant';
 import { UsersService } from '../../users/services/users.service';
 import { AUTH_CONSTANT } from '../constants/auth.constant';
 import { LoginInput } from '../dto/login.input';

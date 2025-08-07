@@ -25,12 +25,12 @@ model Transaction {
   userId String
 
   amount     Float
-  currency   String   @default("IRR") @db.Char(4)
-  category   Category @default(OTHER)
-  intent     Intent // Enum: Planned, Impulse, Obligation
-  emotion    Emotion // Enum: Regret, Satisfaction, etc.
-  note       String?  @db.VarChar(500) // Reflection or short explanation
-  occurredAt DateTime @default(now())
+  currency   String              @default("IRR") @db.Char(4)
+  category   TransactionCategory @default(OTHER)
+  intent     TransactionIntent // Enum: Planned, Impulse, Obligation
+  emotion    TransactionEmotion // Enum: Regret, Satisfaction, etc.
+  note       String?             @db.VarChar(500) // Reflection or short explanation
+  occurredAt DateTime            @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -43,26 +43,26 @@ enum UserRole {
   ADMIN
 }
 
-enum Category {
-  DAILY_PURCHASES
-  MONEY_TRANSFER
-  FOOD
-  CASH_WITHDRAWAL
-  HEALTH_BEAUTY
-  BILLS
-  FASHION
-  TRANSPORT
+enum TransactionCategory {
+  DAILY_EXPENSES
+  TRANSFERS
+  FOOD_AND_DRINKS
+  CASH
+  HEALTH_AND_BEAUTY
+  UTILITIES
+  CLOTHING
+  TRANSPORTATION
   HOUSING
   ENTERTAINMENT
-  CULTURE_ART
-  SAVINGS_INVESTMENT
-  SPORT
-  GIFT
-  LOAN_INSTALLMENT
+  ART_AND_CULTURE
+  SAVINGS_AND_INVESTMENTS
+  SPORTS
+  GIFTS_AND_DONATIONS
+  LOAN_PAYMENTS
   OTHER
 }
 
-enum Emotion {
+enum TransactionEmotion {
   REGRET
   SATISFACTION
   STRESS
@@ -71,8 +71,8 @@ enum Emotion {
   RELIEF
 }
 
-enum Intent {
+enum TransactionIntent {
   PLANNED
-  IMPULSE
-  OBLIGATION
+  IMPULSIVE
+  MANDATORY
 }

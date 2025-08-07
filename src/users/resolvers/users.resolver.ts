@@ -1,16 +1,16 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UserRole } from 'generated/prisma';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { GqlAuthGuard } from '../../auth/guards/gql-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
-import { UserRole } from '../constants/users.constant';
 import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserCredentialInput } from '../dto/update-user-credential.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { NewUser, User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
-import { UpdateUserCredentialInput } from '../dto/update-user-credential.input';
 
 @Resolver(() => User)
 export class UsersResolver {

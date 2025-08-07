@@ -1,6 +1,6 @@
 import { Field, ObjectType, OmitType, registerEnumType } from '@nestjs/graphql';
-import { UserRole as Role } from 'generated/prisma';
-import { USER_CONSTANT, UserRole } from '../constants/users.constant';
+import { UserRole } from 'generated/prisma';
+import { USER_CONSTANT } from '../constants/users.constant';
 
 @ObjectType()
 export class User {
@@ -8,7 +8,7 @@ export class User {
   id: string;
 
   @Field(() => UserRole, { description: USER_CONSTANT.FIELD_DESCRIPTION.ROLE })
-  role: Role;
+  role: UserRole;
 
   @Field({ description: USER_CONSTANT.FIELD_DESCRIPTION.EMAIL })
   email: string;

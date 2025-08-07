@@ -30,8 +30,3 @@ export const USER_CONSTANT = {
     UPDATED_AT: 'Timestamp indicating when the user account was updated the last time',
   },
 };
-
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-}

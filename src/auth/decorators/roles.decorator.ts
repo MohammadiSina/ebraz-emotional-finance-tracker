@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { UserRole } from '../../users/constants/users.constant';
+import { UserRole } from 'generated/prisma';
 
 // This decorator is used to set the roles metadata for a route handler to
 // indicate which roles are allowed to access the route.

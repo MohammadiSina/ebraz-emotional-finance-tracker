@@ -1,7 +1,7 @@
 import { Field, InputType, OmitType, PartialType } from '@nestjs/graphql';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
-import { UserRole as Role } from 'generated/prisma';
-import { USER_CONSTANT, UserRole } from '../constants/users.constant';
+import { UserRole } from 'generated/prisma';
+import { USER_CONSTANT } from '../constants/users.constant';
 import { CreateUserInput } from './create-user.input';
 
 @InputType()
@@ -16,5 +16,5 @@ export class UpdateUserInput extends PartialType(OmitType(CreateUserInput, ['pas
   @IsOptional()
   @IsEnum(UserRole)
   @Field({ description: USER_CONSTANT.FIELD_DESCRIPTION.ROLE, nullable: true })
-  role?: Role;
+  role?: UserRole;
 }
