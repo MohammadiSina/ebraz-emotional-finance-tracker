@@ -41,8 +41,4 @@ Self-awareness leads to smarter decisions. By reflecting on the emotions behind 
 
 ## 🧭 Project Status
 
-Currently in planning and early development phase. Built with passion, curiosity, and emotional honesty.
-
----
-
-### ✨ Made by someone trying to make sense of life, one transaction at a time.
+Currently in planning and early development phase.
