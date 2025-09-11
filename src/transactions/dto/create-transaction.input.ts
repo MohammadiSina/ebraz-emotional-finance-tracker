@@ -1,7 +1,7 @@
 import { Field, Float, InputType } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
 import { IsDate, IsEnum, IsNumber, IsOptional, Length, Max, Min } from 'class-validator';
-import { TransactionCategory, TransactionEmotion, TransactionIntent } from 'generated/prisma';
+import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 
 @InputType()
@@ -16,6 +16,11 @@ export class CreateTransactionInput {
   //  force GraphQL to inject defaults into DTOs (e.g., during updates),
   //  which can lead to unintended overwrites. Prisma is the source of truth
   //  for defaults, so DTOs only declare optionality, not defaults.
+
+  @IsOptional()
+  @IsEnum(TransactionType)
+  @Field(() => TransactionType, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE })
+  type?: TransactionType;
 
   @Max(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MAX)
   @Min(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MIN)

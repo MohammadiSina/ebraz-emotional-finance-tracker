@@ -15,6 +15,7 @@ export const TRANSACTION_CONSTANT = {
   FIELD_DESCRIPTION: {
     ID: 'Unique identifier (UUID) for the transaction',
     USER_ID: 'Unique identifier (UUID) for the user',
+    TYPE: 'Type of the transaction (e.g., INCOME, EXPENSE)',
     AMOUNT: 'Monetary value associated with the transaction',
     CURRENCY: 'Currency code (e.g., USD, EUR) for the transaction amount',
     CATEGORY: 'Category of the transaction (e.g., DAILY_EXPENSES, TRANSPORTATION)',

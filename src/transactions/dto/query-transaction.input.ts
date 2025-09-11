@@ -1,11 +1,16 @@
 import { Field, Float, InputType } from '@nestjs/graphql';
 import { IsDate, IsEnum, IsNumber, IsOptional, Length, Max, Min } from 'class-validator';
-import { TransactionCategory, TransactionEmotion, TransactionIntent } from 'generated/prisma';
+import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 
 @InputType()
 export class QueryTransactionInput extends QueryOptionInput {
+  @IsEnum(TransactionType)
+  @IsOptional()
+  @Field(() => TransactionType, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE })
+  type?: TransactionType;
+
   @IsEnum(TransactionCategory)
   @IsOptional()
   @Field(() => TransactionCategory, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY })

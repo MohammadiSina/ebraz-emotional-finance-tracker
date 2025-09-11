@@ -1,5 +1,5 @@
 import { Field, Float, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { TransactionCategory, TransactionEmotion, TransactionIntent } from 'generated/prisma';
+import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 
 @ObjectType()
@@ -9,6 +9,9 @@ export class Transaction {
 
   @Field({ description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.USER_ID })
   userId: string;
+
+  @Field(() => TransactionType, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE })
+  type: TransactionType;
 
   @Field(() => Float, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
   amount: number;
@@ -39,6 +42,11 @@ export class Transaction {
 }
 
 // Register Prisma enums as GraphQL enums
+registerEnumType(TransactionType, {
+  name: 'TransactionType',
+  description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE,
+});
+
 registerEnumType(TransactionCategory, {
   name: 'TransactionCategory',
   description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY,
