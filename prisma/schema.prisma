@@ -24,19 +24,27 @@ model Transaction {
   user   User   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId String
 
-  type       TransactionType     @default(EXPENSE)
-  amount     Float
-  currency   String              @default("IRR") @db.Char(4)
-  category   TransactionCategory @default(OTHER)
-  intent     TransactionIntent // Enum: Planned, Impulse, Obligation
-  emotion    TransactionEmotion // Enum: Regret, Satisfaction, etc.
-  note       String?             @db.VarChar(500) // Reflection or short explanation
-  occurredAt DateTime            @default(now())
+  type         TransactionType     @default(EXPENSE)
+  currency     TransactionCurrency @default(IRT)
+  amount       Float               @db.Float
+  amountInUsd  Float               @db.Float
+  exchangeRate Float               @db.Float
+  category     TransactionCategory @default(OTHER)
+  intent       TransactionIntent
+  emotion      TransactionEmotion
+  note         String?             @db.VarChar(500)
+  occurredAt   DateTime            @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId, occurredAt])
+}
+
+model ExchangeRate {
+  currency  String   @id @db.Char(6)
+  rate      Float    @db.Float
+  updatedAt DateTime @updatedAt
 }
 
 enum UserRole {
@@ -47,6 +55,11 @@ enum UserRole {
 enum TransactionType {
   INCOME
   EXPENSE
+}
+
+enum TransactionCurrency {
+  IRT
+  USD
 }
 
 enum TransactionCategory {

@@ -16,11 +16,6 @@ export class QueryTransactionInput extends QueryOptionInput {
   @Field(() => TransactionCategory, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY })
   category?: TransactionCategory;
 
-  @Length(TRANSACTION_CONSTANT.LENGTH.CURRENCY.MIN, TRANSACTION_CONSTANT.LENGTH.CURRENCY.MAX)
-  @IsOptional()
-  @Field({ nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CURRENCY })
-  currency?: string;
-
   @IsEnum(TransactionIntent)
   @IsOptional()
   @Field(() => TransactionIntent, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.INTENT })

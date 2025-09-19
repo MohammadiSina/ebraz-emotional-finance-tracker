@@ -17,7 +17,7 @@ export class CreateTransactionInput {
   //  which can lead to unintended overwrites. Prisma is the source of truth
   //  for defaults, so DTOs only declare optionality, not defaults.
 
-  @IsOptional()
+  @IsOptional() // Default to 'EXPENSE' if not provided
   @IsEnum(TransactionType)
   @Field(() => TransactionType, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE })
   type?: TransactionType;
@@ -28,14 +28,14 @@ export class CreateTransactionInput {
   @Field(() => Float, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
   amount: number;
 
-  @Length(TRANSACTION_CONSTANT.LENGTH.CURRENCY.MIN, TRANSACTION_CONSTANT.LENGTH.CURRENCY.MAX)
-  @IsOptional() // Default to 'IRR' if not provided
-  @Field({ nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CURRENCY })
-  currency?: string;
+  @IsNumber({ allowInfinity: false, allowNaN: false })
+  @IsOptional() // Default to current live exchange rate if not provided
+  @Field(() => Float, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.EXCHANGE_RATE })
+  exchangeRate?: number;
 
   @IsEnum(TransactionCategory)
   @IsOptional() // Default to 'OTHER' if not provided
-  @Field(() => TransactionCategory, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY })
+  @Field(() => TransactionCategory, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY })
   category?: TransactionCategory;
 
   @IsEnum(TransactionIntent)

@@ -1,5 +1,11 @@
 import { Field, Float, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
+import {
+  TransactionCategory,
+  TransactionCurrency,
+  TransactionEmotion,
+  TransactionIntent,
+  TransactionType,
+} from 'generated/prisma';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 
 @ObjectType()
@@ -13,11 +19,17 @@ export class Transaction {
   @Field(() => TransactionType, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.TYPE })
   type: TransactionType;
 
+  @Field(() => TransactionCurrency, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CURRENCY })
+  currency: TransactionCurrency;
+
   @Field(() => Float, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
   amount: number;
 
-  @Field({ description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CURRENCY })
-  currency: string;
+  @Field(() => Float, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT_IN_USD })
+  amountInUsd: number;
+
+  @Field(() => Float, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.EXCHANGE_RATE })
+  exchangeRate: number;
 
   @Field(() => TransactionCategory, { description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CATEGORY })
   category: TransactionCategory;
@@ -60,4 +72,9 @@ registerEnumType(TransactionIntent, {
 registerEnumType(TransactionEmotion, {
   name: 'TransactionEmotion',
   description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.EMOTION,
+});
+
+registerEnumType(TransactionCurrency, {
+  name: 'TransactionCurrency',
+  description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.CURRENCY,
 });

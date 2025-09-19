@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Transaction } from 'generated/prisma';
 import { PrismaService } from '../../common/services/prisma.service';
+import { ExchangeRatesService } from '../../exchange-rates/services/exchange-rates.service';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 import { CreateTransactionInput } from '../dto/create-transaction.input';
 import { QueryTransactionInput } from '../dto/query-transaction.input';
@@ -8,10 +9,21 @@ import { UpdateTransactionInput } from '../dto/update-transaction.input';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly exchangeRatesService: ExchangeRatesService,
+  ) {}
 
   async create(createTransactionInput: CreateTransactionInput, userId: string): Promise<Transaction> {
-    return this.prisma.transaction.create({ data: { ...createTransactionInput, userId } });
+    // If the exchange rate is not provided, get the latest exchange rate
+    const exchangeRate =
+      createTransactionInput.exchangeRate ?? (await this.exchangeRatesService.getUsdIrtExchangeRate());
+
+    // Calculate the amount in USD
+    const amountInUsd = Number((createTransactionInput.amount / exchangeRate).toFixed(2));
+
+    // Create the transaction
+    return this.prisma.transaction.create({ data: { ...createTransactionInput, userId, exchangeRate, amountInUsd } });
   }
 
   async findAll(userId: string, queryTransactionInput?: QueryTransactionInput): Promise<Transaction[]> {
@@ -36,8 +48,22 @@ export class TransactionsService {
     return transaction;
   }
 
-  async update(id: string, userId: string, updateTransactionInput: UpdateTransactionInput): Promise<Transaction> {
-    await this.findOne(id, userId);
+  async update(
+    id: string,
+    userId: string,
+    updateTransactionInput: UpdateTransactionInput & { amountInUsd?: number },
+  ): Promise<Transaction> {
+    // Check if the transaction exists
+    const user = await this.findOne(id, userId);
+
+    // If user wants to update the amount, the exchange rate and amount in USD must be updated
+    if (updateTransactionInput.amount || updateTransactionInput.exchangeRate) {
+      updateTransactionInput.exchangeRate ??= await this.exchangeRatesService.getUsdIrtExchangeRate();
+
+      updateTransactionInput.amountInUsd = Number(
+        (updateTransactionInput.amount ?? user.amount / updateTransactionInput.exchangeRate).toFixed(2),
+      );
+    }
 
     return this.prisma.transaction.update({
       where: { id },
@@ -55,7 +81,6 @@ export class TransactionsService {
     const whereConditions: any = { userId };
 
     if (queryTransactionInput?.category) whereConditions.category = queryTransactionInput.category;
-    if (queryTransactionInput?.currency) whereConditions.currency = queryTransactionInput.currency;
     if (queryTransactionInput?.intent) whereConditions.intent = queryTransactionInput.intent;
     if (queryTransactionInput?.emotion) whereConditions.emotion = queryTransactionInput.emotion;
 

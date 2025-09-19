@@ -1,7 +1,7 @@
 export const TRANSACTION_CONSTANT = {
   LENGTH: {
     AMOUNT: { MIN: 0, MAX: 1000000000000 },
-    CURRENCY: { MIN: 3, MAX: 4 },
+    CURRENCY: { MIN: 3, MAX: 3 },
     NOTE: { MIN: 0, MAX: 500 },
   },
 
@@ -17,7 +17,9 @@ export const TRANSACTION_CONSTANT = {
     USER_ID: 'Unique identifier (UUID) for the user',
     TYPE: 'Type of the transaction (e.g., INCOME, EXPENSE)',
     AMOUNT: 'Monetary value associated with the transaction',
-    CURRENCY: 'Currency code (e.g., USD, EUR) for the transaction amount',
+    CURRENCY: 'Currency code (e.g., USD, IRT) for the transaction amount',
+    EXCHANGE_RATE: 'Exchange rate for the transaction amount',
+    AMOUNT_IN_USD: 'Amount in USD for the transaction amount',
     CATEGORY: 'Category of the transaction (e.g., DAILY_EXPENSES, TRANSPORTATION)',
     INTENT: 'Intent of the transaction (e.g., PLANNED, IMPULSE, OBLIGATION)',
     EMOTION: 'Emotion associated with the transaction (e.g., Regret, Satisfaction, etc.)',

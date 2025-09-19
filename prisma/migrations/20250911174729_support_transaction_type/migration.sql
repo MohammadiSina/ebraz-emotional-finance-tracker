@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Transaction` ADD COLUMN `type` ENUM('INCOME', 'EXPENSE') NOT NULL DEFAULT 'EXPENSE';
