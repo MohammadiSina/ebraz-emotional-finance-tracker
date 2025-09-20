@@ -1,5 +1,5 @@
 import { Field, Float, InputType } from '@nestjs/graphql';
-import { IsDate, IsEnum, IsNumber, IsOptional, Length, Max, Min } from 'class-validator';
+import { IsDate, IsEnum, IsNumber, IsOptional, Max, Min } from 'class-validator';
 import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
