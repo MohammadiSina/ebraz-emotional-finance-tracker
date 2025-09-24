@@ -6,5 +6,6 @@ import { AnalyticsService } from './services/analytics.service';
 @Module({
   imports: [AuthModule],
   providers: [AnalyticsResolver, AnalyticsService],
+  exports: [AnalyticsService],
 })
 export class AnalyticsModule {}

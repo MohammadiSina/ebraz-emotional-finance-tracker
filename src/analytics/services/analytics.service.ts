@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
+import { calculatePeriodRange } from '../../common/helpers/calculate-period-range.helper';
 import { PrismaService } from '../../common/services/prisma.service';
 import { ANALYTICS_CONSTANT } from '../constants/analytics.constant';
 import { EmotionBreakdownOutput } from '../dto/emotion-breakdown.output';
@@ -8,7 +9,6 @@ import { NetBalanceOutput } from '../dto/net-balance.output';
 import { SavingsRateOutput } from '../dto/savings-rate.output';
 import { SpendingBreakdownOutput } from '../dto/spending-breakdown.output';
 import { TopTransactionItem, TopTransactionsOutput } from '../dto/top-transactions.output';
-import { PeriodRange } from '../types/period-range.interface';
 import { TransactionAmounts, TransactionTotals } from '../types/transaction-calculation.interface';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class AnalyticsService {
    * Calculates the net balance (income - expenses) for a user in a given period
    */
   async getNetBalance(userId: string, period?: string): Promise<NetBalanceOutput> {
-    const { start, end, periodString } = this.calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
 
     const transactions = await this.fetchTransactionsByPeriod(userId, start, end, {
       type: true,
@@ -41,7 +41,7 @@ export class AnalyticsService {
    * Analyzes spending patterns by category for a user in a given period
    */
   async getSpendingBreakdown(userId: string, period?: string): Promise<SpendingBreakdownOutput> {
-    const { start, end, periodString } = this.calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
 
     const transactions = await this.fetchTransactionsByPeriod(
       userId,
@@ -65,7 +65,7 @@ export class AnalyticsService {
    * Analyzes transaction patterns by intent for a user in a given period
    */
   async getIntentBreakdown(userId: string, period?: string): Promise<IntentBreakdownOutput> {
-    const { start, end, periodString } = this.calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
 
     const transactions = await this.fetchTransactionsByPeriod(
       userId,
@@ -93,7 +93,7 @@ export class AnalyticsService {
    * Analyzes transaction patterns by emotion for a user in a given period
    */
   async getEmotionBreakdown(userId: string, period?: string): Promise<EmotionBreakdownOutput> {
-    const { start, end, periodString } = this.calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
 
     const transactions = await this.fetchTransactionsByPeriod(
       userId,
@@ -144,7 +144,7 @@ export class AnalyticsService {
     period?: string,
     take: number = ANALYTICS_CONSTANT.DEFAULT_TOP_TRANSACTIONS_LIMIT,
   ): Promise<TopTransactionsOutput> {
-    const { start, end, periodString } = this.calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
 
     const transactions = await this.prisma.transaction.findMany({
       where: { userId, type: TransactionType.EXPENSE, occurredAt: { gte: start, lt: end } },
@@ -157,27 +157,6 @@ export class AnalyticsService {
   }
 
   // ==================== PRIVATE HELPER METHODS ====================
-
-  /**
-   * Calculates the start and end dates for a given period
-   */
-  private calculatePeriodRange(period?: string): PeriodRange {
-    let start: Date;
-    let end: Date;
-
-    if (period) {
-      const [year, month] = period.split('-').map(Number);
-      start = new Date(Date.UTC(year, month - 1, 1));
-      end = new Date(Date.UTC(year, month, 1));
-    } else {
-      const now = new Date();
-      start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-      end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-    }
-
-    const periodString = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`;
-    return { start, end, periodString };
-  }
 
   /**
    * Fetches transactions for a user within a specific period
