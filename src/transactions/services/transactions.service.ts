@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Transaction } from 'generated/prisma';
+import { Transaction, TransactionType } from 'generated/prisma';
+
+import { calculatePeriodRange } from '../../common/helpers/calculate-period-range.helper';
 import { PrismaService } from '../../common/services/prisma.service';
 import { ExchangeRatesService } from '../../exchange-rates/services/exchange-rates.service';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
@@ -46,6 +48,38 @@ export class TransactionsService {
     if (!transaction) throw new NotFoundException(TRANSACTION_CONSTANT.ERROR.TRANSACTION_NOT_FOUND(id));
 
     return transaction;
+  }
+
+  async findTopExpenseTransactions(userId: string, period?: string): Promise<Partial<Transaction>[]> {
+    const { start, end } = calculatePeriodRange(period);
+
+    return this.prisma.transaction.findMany({
+      where: { userId, type: TransactionType.EXPENSE, occurredAt: { gte: start, lt: end } },
+      orderBy: [{ amount: 'desc' }, { occurredAt: 'asc' }],
+      take: TRANSACTION_CONSTANT.LENGTH.INSIGHT_TRANSACTIONS.MAX,
+      select: {
+        category: true,
+        amount: true,
+        amountInUsd: true,
+        intent: true,
+        emotion: true,
+        note: true,
+        occurredAt: true,
+      },
+    });
+  }
+
+  // Used by users service to find those with minimum required 'EXPENSE' transactions for insights generation
+  async findUsersWithMinimumTransactions(minInsightTransactions: number, period?: string) {
+    const { start, end } = calculatePeriodRange(period);
+
+    return this.prisma.transaction.groupBy({
+      by: ['userId'],
+      where: { occurredAt: { gte: start, lt: end }, type: TransactionType.EXPENSE },
+      _count: { userId: true },
+      having: { userId: { _count: { gte: minInsightTransactions } } },
+      orderBy: { _count: { userId: 'desc' } },
+    });
   }
 
   async update(
@@ -99,6 +133,16 @@ export class TransactionsService {
 
       if (queryTransactionInput.minAmount !== undefined) whereConditions.amount.gte = queryTransactionInput.minAmount;
       if (queryTransactionInput.maxAmount !== undefined) whereConditions.amount.lte = queryTransactionInput.maxAmount;
+    }
+
+    if (queryTransactionInput?.minAmountInUsd !== undefined || queryTransactionInput?.maxAmountInUsd !== undefined) {
+      whereConditions.amountInUsd = {};
+
+      if (queryTransactionInput.minAmountInUsd !== undefined)
+        whereConditions.amountInUsd.gte = queryTransactionInput.minAmountInUsd;
+
+      if (queryTransactionInput.maxAmountInUsd !== undefined)
+        whereConditions.amountInUsd.lte = queryTransactionInput.maxAmountInUsd;
     }
 
     return whereConditions;

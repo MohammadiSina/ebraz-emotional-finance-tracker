@@ -1,6 +1,7 @@
 import { Field, Float, InputType } from '@nestjs/graphql';
 import { IsDate, IsEnum, IsNumber, IsOptional, Max, Min } from 'class-validator';
 import { TransactionCategory, TransactionEmotion, TransactionIntent, TransactionType } from 'generated/prisma';
+
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { TRANSACTION_CONSTANT } from '../constants/transactions.constant';
 
@@ -44,4 +45,18 @@ export class QueryTransactionInput extends QueryOptionInput {
   @IsOptional()
   @Field(() => Float, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
   maxAmount?: number;
+
+  @Max(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MAX)
+  @Min(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MIN)
+  @IsNumber({ allowInfinity: false, allowNaN: false })
+  @IsOptional()
+  @Field(() => Float, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
+  minAmountInUsd?: number;
+
+  @Max(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MAX)
+  @Min(TRANSACTION_CONSTANT.LENGTH.AMOUNT.MIN)
+  @IsNumber({ allowInfinity: false, allowNaN: false })
+  @IsOptional()
+  @Field(() => Float, { nullable: true, description: TRANSACTION_CONSTANT.FIELD_DESCRIPTION.AMOUNT })
+  maxAmountInUsd?: number;
 }

@@ -1,8 +1,11 @@
+import { INSIGHTS_CONSTANT } from '../../insights/constants/insights.constant';
+
 export const TRANSACTION_CONSTANT = {
   LENGTH: {
     AMOUNT: { MIN: 0, MAX: 1000000000000 },
     CURRENCY: { MIN: 3, MAX: 3 },
     NOTE: { MIN: 0, MAX: 500 },
+    INSIGHT_TRANSACTIONS: INSIGHTS_CONSTANT.LENGTH.INSIGHT_TRANSACTIONS,
   },
 
   ERROR: {

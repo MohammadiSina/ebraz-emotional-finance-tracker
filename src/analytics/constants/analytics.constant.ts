@@ -1,13 +1,15 @@
+import { COMMON_CONSTANT } from '../../common/constants/common.constant';
+
 export const ANALYTICS_CONSTANT = {
   DEFAULT_TOP_TRANSACTIONS_LIMIT: 5,
   PERCENTAGE_MULTIPLIER: 100,
 
   ERROR: {
-    PERIOD_FORMAT: 'Period must be in YYYY-MM format',
+    PERIOD_FORMAT: COMMON_CONSTANT.ERROR.PERIOD_FORMAT,
   },
 
   FIELD_DESCRIPTION: {
-    PERIOD: 'Period identifier (e.g., "2025-08" for August 2025)',
+    PERIOD: COMMON_CONSTANT.FIELD_DESCRIPTION.PERIOD,
     TOTAL_INCOME: 'Total income for the selected period',
     TOTAL_EXPENSE: 'Total expenses for the selected period',
     NET_BALANCE: 'Net balance (income - expenses)',

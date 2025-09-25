@@ -1,8 +1,10 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRole } from 'generated/prisma';
+
 import { HashService } from '../../auth/services/hash.service';
 import { QueryOptionInput } from '../../common/dto/query-option.input';
 import { PrismaService } from '../../common/services/prisma.service';
+import { TransactionsService } from '../../transactions/services/transactions.service';
 import { USER_CONSTANT } from '../constants/users.constant';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserCredentialInput } from '../dto/update-user-credential.input';
@@ -14,6 +16,7 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hashService: HashService,
+    private readonly transactionsService: TransactionsService,
   ) {}
 
   async create(createUserInput: CreateUserInput) {
@@ -46,6 +49,14 @@ export class UsersService {
       where: { email },
       select: { id: true, email: true, password: true, createdAt: true, role: true },
     });
+  }
+
+  // Internal Usage Only
+  async findUsersEligibleForInsights(minInsightTransactions: number, period?: string) {
+    const grouped = await this.transactionsService.findUsersWithMinimumTransactions(minInsightTransactions, period);
+    const userIds = grouped.map((g) => g.userId);
+
+    return this.prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true } });
   }
 
   // Internal Usage Only
