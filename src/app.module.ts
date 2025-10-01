@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 
@@ -20,7 +22,12 @@ import { UsersModule } from './users/users.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
-    BullModule.forRoot({ connection: { host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT) || 6379 } }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: Number(process.env.REDIS_CACHE_TTL),
+      stores: [new KeyvRedis(process.env.REDIS_URL)],
+    }),
+    BullModule.forRoot({ connection: { url: process.env.REDIS_URL } }),
     BullBoardModule.forRoot({ route: '/bull-board', adapter: ExpressAdapter }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
