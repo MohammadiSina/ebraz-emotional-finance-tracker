@@ -1,12 +1,13 @@
 import { forwardRef, Module } from '@nestjs/common';
 
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { AuthModule } from '../auth/auth.module';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
 import { TransactionsResolver } from './resolvers/transactions.resolver';
 import { TransactionsService } from './services/transactions.service';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), ExchangeRatesModule],
+  imports: [forwardRef(() => AuthModule), forwardRef(() => AnalyticsModule), ExchangeRatesModule],
   providers: [TransactionsResolver, TransactionsService],
   exports: [TransactionsService],
 })

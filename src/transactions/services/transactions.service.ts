@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Transaction, TransactionType } from 'generated/prisma';
 
+import { AnalyticsService } from '../../analytics/services/analytics.service';
 import { calculatePeriodRange } from '../../common/helpers/calculate-period-range.helper';
 import { PrismaService } from '../../common/services/prisma.service';
 import { ExchangeRatesService } from '../../exchange-rates/services/exchange-rates.service';
@@ -14,6 +17,8 @@ export class TransactionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly exchangeRatesService: ExchangeRatesService,
+    private readonly analyticsService: AnalyticsService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async create(createTransactionInput: CreateTransactionInput, userId: string): Promise<Transaction> {
@@ -25,7 +30,14 @@ export class TransactionsService {
     const amountInUsd = Number((createTransactionInput.amount / exchangeRate).toFixed(2));
 
     // Create the transaction
-    return this.prisma.transaction.create({ data: { ...createTransactionInput, userId, exchangeRate, amountInUsd } });
+    const transaction = await this.prisma.transaction.create({
+      data: { ...createTransactionInput, userId, exchangeRate, amountInUsd },
+    });
+
+    // Invalidate analytics cache for this user
+    await this.analyticsService.invalidateUserAnalyticsCache(userId);
+
+    return transaction;
   }
 
   async findAll(userId: string, queryTransactionInput?: QueryTransactionInput): Promise<Transaction[]> {
@@ -33,27 +45,54 @@ export class TransactionsService {
     const take = queryTransactionInput?.take || 3;
     const skip = (page - 1) * take;
 
+    // Generate cache key with filters
+    const filtersString = this.generateFiltersString(queryTransactionInput);
+    const cacheKey = this.getPaginatedCacheKey(userId, 'findAll', page, take, filtersString);
+
+    // Try to get from cache first
+    const cachedResult = await this.cacheManager.get<Transaction[]>(cacheKey);
+    if (cachedResult) return cachedResult;
+
     const whereConditions = this.buildQueryFilters(userId, queryTransactionInput);
 
-    return this.prisma.transaction.findMany({
+    const result = await this.prisma.transaction.findMany({
       where: whereConditions,
       skip,
       take,
       orderBy: [{ occurredAt: 'desc' }, { createdAt: 'desc' }],
     });
+
+    // Cache the result
+    await this.cacheManager.set(cacheKey, result, TRANSACTION_CONSTANT.CACHE.TTL.FIND_ALL);
+
+    return result;
   }
 
   async findOne(id: string, userId: string): Promise<Transaction> {
+    const cacheKey = this.getCacheKey(userId, 'findOne', id);
+
+    // Try to get from cache first
+    const cachedResult = await this.cacheManager.get<Transaction>(cacheKey);
+    if (cachedResult) return cachedResult;
+
     const transaction = await this.prisma.transaction.findUnique({ where: { id, userId } });
     if (!transaction) throw new NotFoundException(TRANSACTION_CONSTANT.ERROR.TRANSACTION_NOT_FOUND(id));
+
+    // Cache the result
+    await this.cacheManager.set(cacheKey, transaction, TRANSACTION_CONSTANT.CACHE.TTL.FIND_ONE);
 
     return transaction;
   }
 
   async findTopExpenseTransactions(userId: string, period?: string): Promise<Partial<Transaction>[]> {
-    const { start, end } = calculatePeriodRange(period);
+    const { start, end, periodString } = calculatePeriodRange(period);
+    const cacheKey = this.getCacheKey(userId, 'findTopExpense', periodString);
 
-    return this.prisma.transaction.findMany({
+    // Try to get from cache first
+    const cachedResult = await this.cacheManager.get<Partial<Transaction>[]>(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const result = await this.prisma.transaction.findMany({
       where: { userId, type: TransactionType.EXPENSE, occurredAt: { gte: start, lt: end } },
       orderBy: [{ amount: 'desc' }, { occurredAt: 'asc' }],
       take: TRANSACTION_CONSTANT.LENGTH.INSIGHT_TRANSACTIONS.MAX,
@@ -67,6 +106,11 @@ export class TransactionsService {
         occurredAt: true,
       },
     });
+
+    // Cache the result
+    await this.cacheManager.set(cacheKey, result, TRANSACTION_CONSTANT.CACHE.TTL.TOP_EXPENSE);
+
+    return result;
   }
 
   // Used by users service to find those with minimum required 'EXPENSE' transactions for insights generation
@@ -99,17 +143,29 @@ export class TransactionsService {
       );
     }
 
-    return this.prisma.transaction.update({
+    const updatedTransaction = await this.prisma.transaction.update({
       where: { id },
       data: updateTransactionInput,
     });
+
+    // Invalidate analytics cache for this user
+    await this.analyticsService.invalidateUserAnalyticsCache(userId);
+
+    return updatedTransaction;
   }
 
   async remove(id: string, userId: string): Promise<Transaction> {
     await this.findOne(id, userId);
 
-    return this.prisma.transaction.delete({ where: { id } });
+    const deletedTransaction = await this.prisma.transaction.delete({ where: { id } });
+
+    // Invalidate analytics cache for this user
+    await this.analyticsService.invalidateUserAnalyticsCache(userId);
+
+    return deletedTransaction;
   }
+
+  // ==================== HELPER METHODS ====================
 
   private buildQueryFilters(userId: string, queryTransactionInput?: QueryTransactionInput): any {
     const whereConditions: any = { userId };
@@ -146,5 +202,43 @@ export class TransactionsService {
     }
 
     return whereConditions;
+  }
+
+  /**
+   * Generates a cache key for transaction data
+   */
+  private getCacheKey(userId: string, method: string, additionalParams?: string): string {
+    const paramsKey = additionalParams ? `:${additionalParams}` : '';
+    return `${TRANSACTION_CONSTANT.CACHE.KEY_PREFIX}${method}:${userId}${paramsKey}`;
+  }
+
+  /**
+   * Generates a cache key for paginated queries
+   */
+  private getPaginatedCacheKey(userId: string, method: string, page: number, take: number, filters?: string): string {
+    const filtersKey = filters ? `:${filters}` : '';
+    return `${TRANSACTION_CONSTANT.CACHE.KEY_PREFIX}${method}:${userId}:${page}:${take}${filtersKey}`;
+  }
+
+  /**
+   * Generates a string representation of query filters for cache key
+   */
+  private generateFiltersString(queryTransactionInput?: QueryTransactionInput): string {
+    if (!queryTransactionInput) return '';
+
+    const filters: string[] = [];
+    if (queryTransactionInput.category) filters.push(`cat:${queryTransactionInput.category}`);
+    if (queryTransactionInput.intent) filters.push(`int:${queryTransactionInput.intent}`);
+    if (queryTransactionInput.emotion) filters.push(`emo:${queryTransactionInput.emotion}`);
+    if (queryTransactionInput.occurredAt)
+      filters.push(`date:${queryTransactionInput.occurredAt.toISOString().split('T')[0]}`);
+    if (queryTransactionInput.minAmount !== undefined) filters.push(`minAmt:${queryTransactionInput.minAmount}`);
+    if (queryTransactionInput.maxAmount !== undefined) filters.push(`maxAmt:${queryTransactionInput.maxAmount}`);
+    if (queryTransactionInput.minAmountInUsd !== undefined)
+      filters.push(`minUsd:${queryTransactionInput.minAmountInUsd}`);
+    if (queryTransactionInput.maxAmountInUsd !== undefined)
+      filters.push(`maxUsd:${queryTransactionInput.maxAmountInUsd}`);
+
+    return filters.join('|');
   }
 }

@@ -8,6 +8,15 @@ export const TRANSACTION_CONSTANT = {
     INSIGHT_TRANSACTIONS: INSIGHTS_CONSTANT.LENGTH.INSIGHT_TRANSACTIONS,
   },
 
+  CACHE: {
+    KEY_PREFIX: 'ebraz:transactions:',
+    TTL: {
+      FIND_ALL: 300000, // 5 minutes
+      FIND_ONE: 600000, // 10 minutes
+      TOP_EXPENSE: 300000, // 5 minutes
+    },
+  },
+
   ERROR: {
     TRANSACTION_NOT_FOUND: (id: string) =>
       id
