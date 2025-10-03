@@ -4,6 +4,18 @@ export const ANALYTICS_CONSTANT = {
   DEFAULT_TOP_TRANSACTIONS_LIMIT: 5,
   PERCENTAGE_MULTIPLIER: 100,
 
+  CACHE: {
+    KEY_PREFIX: 'ebraz:analytics:',
+    TTL: {
+      NET_BALANCE: 300000, // 5 minutes
+      SPENDING_BREAKDOWN: 300000, // 5 minutes
+      INTENT_BREAKDOWN: 300000, // 5 minutes
+      EMOTION_BREAKDOWN: 300000, // 5 minutes
+      SAVINGS_RATE: 300000, // 5 minutes
+      TOP_TRANSACTIONS: 600000, // 10 minutes
+    },
+  },
+
   ERROR: {
     PERIOD_FORMAT: COMMON_CONSTANT.ERROR.PERIOD_FORMAT,
   },
