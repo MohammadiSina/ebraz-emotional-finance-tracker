@@ -60,7 +60,7 @@ export class ExchangeRatesService {
     return rate;
   }
 
-  async getExchangeRateFromApi(): Promise<BitpinMarketResponse> {
+  private async getExchangeRateFromApi(): Promise<BitpinMarketResponse> {
     const url = EXCHANGE_RATES_CONSTANT.API.BITPIN_MARKET_PRICE_URL;
 
     const { data } = await firstValueFrom(
