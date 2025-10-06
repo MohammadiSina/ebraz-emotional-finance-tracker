@@ -139,7 +139,7 @@ export class TransactionsService {
       updateTransactionInput.exchangeRate ??= await this.exchangeRatesService.getUsdIrtExchangeRate();
 
       updateTransactionInput.amountInUsd = Number(
-        (updateTransactionInput.amount ?? user.amount / updateTransactionInput.exchangeRate).toFixed(2),
+        ((updateTransactionInput.amount ?? user.amount) / updateTransactionInput.exchangeRate).toFixed(2),
       );
     }
 
