@@ -11,7 +11,7 @@ export class InsightsConsumer extends WorkerHost {
   }
 
   async process(job: Job<{ userId: string }>): Promise<any> {
-    if (job.name !== 'generate') return;
+    if (job.name !== 'generate' || !job.data.userId) return;
 
     await this.insightsService.generate(job.data.userId);
   }
