@@ -1,7 +1,7 @@
 {
   "name": "ebraz-emotional-finance-tracker",
   "version": "0.0.0",
-  "description": "Mindful personal finance tool that helps with tracking how users feel about their spendings.",
+  "description": "Personal finance application that bridges the gap between financial data and emotional well-being.",
   "author": "MohammadiSina",
   "private": true,
   "license": "UNLICENSED",
