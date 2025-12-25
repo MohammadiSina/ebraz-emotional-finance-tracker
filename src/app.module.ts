@@ -17,10 +17,11 @@ import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module';
 import { InsightsModule } from './insights/insights.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UsersModule } from './users/users.module';
+import { envValidationSchema } from './configs/env-validation.schema';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema, validatePredefined: false }),
     ScheduleModule.forRoot(),
     CacheModule.register({
       isGlobal: true,
