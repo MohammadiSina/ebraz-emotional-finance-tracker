@@ -17,7 +17,7 @@ import { HashService } from './services/hash.service';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1h') },
+        signOptions: { expiresIn: configService.get<any>('JWT_EXPIRES_IN', '1h') },
       }),
     }),
   ],
